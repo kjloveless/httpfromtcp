@@ -11,24 +11,41 @@ func main() {
   file, err := os.Open("messages.txt")
   if err != nil {
     os.Exit(1)
+  } 
+  
+  lc := getLinesChannel(file)
+  for line := range lc {
+    fmt.Printf("read: %s\n", line)
   }
+
+  file.Close()
+}
+
+func getLinesChannel(f io.ReadCloser) <-chan string {
+  lc := make(chan string)
 
   data := make([]byte, 8)
   var line string
-  for {
-    _, err := file.Read(data)
-    if err == io.EOF {
-      if len(line) > 0 {
-        fmt.Printf("read: %s\n", line)
+  go func() {
+    for {
+      _, err := f.Read(data)
+      if err == io.EOF {
+        if len(line) > 0 {
+          lc <- line
+          break
+        }
+        os.Exit(0)
       }
-      os.Exit(0)
-    }
 
-    parts := strings.Split(string(data), "\n")
-    line += parts[0]
-    if len(parts) == 2 {
-      fmt.Printf("read: %s\n", line)
-      line = parts[1]
+      parts := strings.Split(string(data), "\n")
+      line += parts[0]
+      if len(parts) == 2 {
+        lc <- line
+        line = parts[1]
+      }
     }
-  }
+  }()
+
+  close(lc)
+  return lc
 }
