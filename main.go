@@ -32,6 +32,7 @@ func getLinesChannel(f io.ReadCloser) <-chan string {
       if err == io.EOF {
         if len(line) > 0 {
           lc <- line
+          close(lc)
           break
         }
         os.Exit(0)
@@ -46,6 +47,5 @@ func getLinesChannel(f io.ReadCloser) <-chan string {
     }
   }()
 
-  close(lc)
   return lc
 }
