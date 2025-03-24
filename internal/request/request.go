@@ -1,6 +1,7 @@
 package request
 
 import (
+  "errors"
   "io"
   "log"
   "strings"
@@ -24,6 +25,9 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 
   req := strings.Split(string(data), "\r\n")[0]
   reqLine := strings.Split(req, " ")
+  if len(reqLine) < 3 {
+    return nil, errors.New("malformed request") 
+  }
 
   log.Println(req)
   return &Request{RequestLine{
